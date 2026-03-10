@@ -1,0 +1,37 @@
+// ==UserScript==
+// @name         Auto Click Tiep Tuc Kesato
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @match        https://*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    function autoClick() {
+
+        let btn = document.querySelector("#countdownBtn");
+
+        if (!btn) return;
+
+        // bỏ trạng thái loading nếu có
+        btn.classList.remove("loading");
+
+        // cuộn tới nút
+        btn.scrollIntoView({block: "center"});
+
+        // click
+        btn.click();
+
+        console.log("Đã click tiếp tục");
+    }
+
+    setInterval(()=>{
+    let textBtn = document.querySelector(".countdown");
+    if(textBtn){
+        textBtn.click();
+    }
+},2000);
+
+})();
