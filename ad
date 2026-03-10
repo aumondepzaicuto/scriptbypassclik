@@ -362,7 +362,7 @@ runScript();
 SKIP MISSION KHÔNG MONG MUỐN
 ========================= */
 
-const skipMissions=[14,97,140,147,64,121,];
+const skipMissions=[14,97,140,147,64,121,21,];
 
 if(location.host.includes("huongdangetlink")){
 
