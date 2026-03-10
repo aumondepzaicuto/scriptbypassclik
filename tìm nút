@@ -1,0 +1,124 @@
+// ==UserScript==
+// @name         AUTO COUNTDOWN BTN FIX PRO
+// @namespace    http://tampermonkey.net/
+// @version      3.0
+// @match        *://*
+// @grant        none
+// ==/UserScript==
+
+(function(){
+
+"use strict";
+
+function sleep(ms){
+return new Promise(r=>setTimeout(r,ms));
+}
+
+function realClick(el){
+el.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+}
+
+async function scrollToElement(el){
+
+for(let i=0;i<10;i++){
+
+let rect=el.getBoundingClientRect();
+
+let middle=window.innerHeight/2;
+
+if(rect.top>0 && rect.bottom<window.innerHeight){
+
+console.log("Nút đã trong màn hình");
+return;
+
+}
+
+window.scrollBy({
+top:rect.top-middle,
+behavior:"auto"
+});
+
+await sleep(800);
+
+}
+
+}
+
+async function run(){
+
+while(true){
+
+let btn=document.querySelector("#countdownBtn");
+
+if(!btn){
+
+console.log("Đang tìm nút...");
+
+/* thêm scroll nhẹ để nút xuất hiện */
+
+window.scrollBy({
+top: Math.random() > 0.5 ? 300 : -300,
+behavior: "auto"
+});
+
+await sleep(2000);
+
+continue;
+
+}
+
+/* scroll tới nút */
+
+await scrollToElement(btn);
+
+await sleep(2000);
+
+/* click lần 1 */
+
+console.log("Click 1");
+
+realClick(btn);
+
+await sleep(5000);
+
+/* click lần 2 */
+
+console.log("Click 2");
+
+realClick(btn);
+
+await sleep(3000);
+
+/* đọc text countdown */
+
+let textElement=document.querySelector(".countdown");
+
+let text=(textElement?.innerText||"").toLowerCase();
+
+console.log("Text:",text);
+
+/* nếu chuyển sang nhấn link bất kỳ */
+
+if(text.includes("nhấn link") || text.includes("nhan link")){
+
+console.log("Reload trang");
+
+location.reload();
+
+return;
+
+}
+
+await sleep(5000);
+
+}
+
+}
+
+window.addEventListener("load",()=>{
+
+setTimeout(run,4000);
+
+});
+
+})(); 
