@@ -71,11 +71,11 @@ const missions={
 2:{keyword:"OK 8386",domain:"www.kalali.africa.com"},
 3:{keyword:"LUCK8",domain:"luck8.rsvp"},
 4:{keyword:"NOHU",domain:"nohu-nohu09.com"},
-5:{keyword:"BET88",domain:"bet88-khuyenmai188k.com"},
+5:{keyword:"tài xỉu md5",domain:"dolcecasa.it.com"},
 6:{keyword:"8LIVE",domain:"venmo.co.com"},
 7:{keyword:"SUNWIN",domain:"sunwin2009.com"},
 8:{keyword:"U888",domain:"u8886.shop"},
-9:{keyword:"KEONHACAI",domain:"www.zinieces.com.mx"},
+9:{keyword:"taixiumd5",domain:"dolcecasa.it.com"},
 10:{keyword:"OPEN88 COM",domain:"open882.net"},
 11:{keyword:"fly88",domain:"nartayo.za.com"},
 12:{keyword:"",domain:""},
@@ -93,8 +93,8 @@ const missions={
 24:{keyword:"OK8386",domain:"mny.uk.com"},
 25:{keyword:"OK8386 COM",domain:"mny.uk.com"},
 26:{keyword:"OK8386",domain:"ok8386.direct"},
-27:{keyword:"OK8386",domain:"www.kalali.africa.com"},
-28:{keyword:"OK 8386",domain:"ok8386.direct"},
+27:{keyword:"sc88",domain:"anietbd.sa.com"},
+28:{keyword:"sc88",domain:"anietbd.sa.com"},
 29:{keyword:"OK 8386",domain:"www.kalali.africa.com"},
 30:{keyword:"88BET",domain:"linktrangchu-88bet.com"},
 31:{keyword:"88BET COM",domain:"linktrangchu-88bet.com"},
@@ -224,13 +224,19 @@ sc8:{keyword:"sc88",domain:"sc88okvip.store"},
 153:{keyword:"79KING",domain:"www.joenegalone.uk.com"},
 154:{keyword:"888NEW",domain:"888new-me.com"},
 155:{keyword:"888NEW",domain:"topiir-up.ru.com"},
-156:{keyword:"99ok",domain:"銀行カードローン.jp.net"},
+156:{keyword:"99ok",domain:"99ok-ok99.com"},
 157:{keyword:"ok365",domain:"ok365mobi.ink"},
 158:{keyword:"win678",domain:"stu3.sa.com"},
 159:{keyword:"28bet",domain:"beginpawky.gb.net"},
 160:{keyword:"33WIN COM",domain:"u7g.us.com"},
+161:{keyword:"8kbett",domain:"online-banking.gb.net"},
 162:{keyword:"8kbet",domain:"8kbet-8.info"},
-161:{keyword:"8kbett",domain:"online-banking.gb.net"}
+163:{keyword:"nổ hũ",domain:"nohu90000.app"},
+164:{keyword:"WW88",domain:"ww88-s2.com"},
+12238:{keyword:"789p",domain:"789p-mobi.com"},
+166:{keyword:"AU88",domain:"1au88.chat"},
+167:{keyword:"nohu",domain:"nohu-khuyenmai99k.com"},
+168:{keyword:"J88",domain:"ice-casino.gr.com"}
 };
 
 
@@ -240,7 +246,7 @@ sc8:{keyword:"sc88",domain:"sc88okvip.store"},
 
 if(location.host.includes("huongdangetlink")){
 
-let match=location.pathname.match(/(\d+)-\d+/);
+let match=location.pathname.match(/^\/(\d+)-/);
 
 if(!match) return;
 
@@ -350,84 +356,13 @@ runScript();
 
 
 
-/* =========================
-5. COUNTDOWN
-========================= */
 
-async function handleCountdown(){
-
-let btn;
-
-for(let i=0;i<15;i++){
-
-btn=document.querySelector("#countdownBtn");
-
-if(btn) break;
-
-console.log("Đang tìm countdownBtn...");
-
-await sleep(2000);
-
-}
-
-if(!btn){
-console.log("Không thấy countdownBtn");
-return;
-}
-
-btn.scrollIntoView({
-behavior:"smooth",
-block:"center"
-});
-
-await sleep(2000);
-
-console.log("Click lần 1");
-realClick(btn);
-
-await sleep(5000);
-
-console.log("Click lần 2");
-realClick(btn);
-
-await sleep(3000);
-
-let text=btn.innerText.toLowerCase();
-
-if(
-text.includes("nhấn link") ||
-text.includes("nhan link")
-){
-location.reload();
-return;
-}
-
-if(
-text.includes("nhấn để tiếp tục") ||
-text.includes("nhan de tiep tuc")
-){
-realClick(btn);
-return;
-}
-
-setTimeout(handleCountdown,5000);
-
-}
-
-window.addEventListener("load",()=>{
-
-setTimeout(handleCountdown,5000);
-
-});
-/* =========================
-SKIP MISSION KHÔNG MONG MUỐN
-========================= */
 
 /* =========================
 SKIP MISSION KHÔNG MONG MUỐN
 ========================= */
 
-const skipMissions=[14,97,140,145,21,156,];
+const skipMissions=[14,97,140,147,64,121,21,];
 
 if(location.host.includes("huongdangetlink")){
 
