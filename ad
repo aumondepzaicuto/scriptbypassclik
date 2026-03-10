@@ -246,7 +246,7 @@ sc8:{keyword:"sc88",domain:"sc88okvip.store"},
 
 if(location.host.includes("huongdangetlink")){
 
-let match=location.pathname.match(/(\d+)-\d+/);
+let match = location.pathname.match(/\/(\d+)/);
 
 if(!match) return;
 
@@ -356,84 +356,13 @@ runScript();
 
 
 
-/* =========================
-5. COUNTDOWN
-========================= */
 
-async function handleCountdown(){
-
-let btn;
-
-for(let i=0;i<15;i++){
-
-btn=document.querySelector("#countdownBtn");
-
-if(btn) break;
-
-console.log("Đang tìm countdownBtn...");
-
-await sleep(2000);
-
-}
-
-if(!btn){
-console.log("Không thấy countdownBtn");
-return;
-}
-
-btn.scrollIntoView({
-behavior:"smooth",
-block:"center"
-});
-
-await sleep(2000);
-
-console.log("Click lần 1");
-realClick(btn);
-
-await sleep(5000);
-
-console.log("Click lần 2");
-realClick(btn);
-
-await sleep(3000);
-
-let text=btn.innerText.toLowerCase();
-
-if(
-text.includes("nhấn link") ||
-text.includes("nhan link")
-){
-location.reload();
-return;
-}
-
-if(
-text.includes("nhấn để tiếp tục") ||
-text.includes("nhan de tiep tuc")
-){
-realClick(btn);
-return;
-}
-
-setTimeout(handleCountdown,5000);
-
-}
-
-window.addEventListener("load",()=>{
-
-setTimeout(handleCountdown,5000);
-
-});
-/* =========================
-SKIP MISSION KHÔNG MONG MUỐN
-========================= */
 
 /* =========================
 SKIP MISSION KHÔNG MONG MUỐN
 ========================= */
 
-const skipMissions=[14,97,140,147,64,];
+const skipMissions=[14,97,140,147,64,121,];
 
 if(location.host.includes("huongdangetlink")){
 
