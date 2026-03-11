@@ -1,0 +1,378 @@
+// ==UserScript==
+// @name         1.09
+// @namespace    http://tampermonkey.net/
+// @version      111.1
+// @match        https://clickmoney.online/*
+// @match        https://huongdangetlink.com/*
+// @match        https://www.google.com/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+
+"use strict";
+
+/* =========================
+TOOLS
+========================= */
+
+function sleep(ms){
+    return new Promise(r=>setTimeout(r,ms));
+}
+
+function realClick(el){
+    el.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+}
+
+
+/* =========================
+1. AUTO CLICK LÀM NGAY
+========================= */
+
+function autoClickLamNgay(){
+
+    let buttons=document.querySelectorAll("button");
+
+    for(let btn of buttons){
+
+        let text=(btn.innerText||"").toLowerCase();
+
+        if(text.includes("làm ngay")){
+
+            console.log("Click Làm ngay");
+
+            setTimeout(()=>{
+                realClick(btn);
+            },2000);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+let waitLamNgay=setInterval(()=>{
+
+    if(autoClickLamNgay()){
+        clearInterval(waitLamNgay);
+    }
+
+},1000);
+
+
+const missionList = {
+
+1:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok8386-mobi.com/&ved=2ahUKE1",
+2:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://www.kalali.africa.com/&ved=2ahUKE2",
+3:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://luck8.rsvp/&ved=2ahUKE3",
+4:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu-nohu09.com/&ved=2ahUKE4",
+5:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://dolcecasa.it.com/&ved=2ahUKE5",
+6:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://venmo.co.com/&ved=2ahUKE6",
+7:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE7",
+8:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://u8886.shop/&ved=2ahUKE8",
+9:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://dolcecasa.it.com/&ved=2ahUKE9",
+10:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open882.net/&ved=2ahUKE10",
+11:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nartayo.za.com/&ved=2ahUKE11",
+
+13:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ee88-mb.site/&ved=2ahUKE13",
+14:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://789win-mobi.com/&ved=2ahUKE14",
+15:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://amicus.gb.net/&ved=2ahUKE15",
+16:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://iglyz7.sa.com/&ved=2ahUKE16",
+17:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open882.net/&ved=2ahUKE17",
+18:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://23win-02.com/&ved=2ahUKE18",
+19:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://23win-trangchu.vip/&ved=2ahUKE19",
+20:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://32win-dangnhap.com/&ved=2ahUKE20",
+21:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://dom.ae.org/&ved=2ahUKE21",
+22:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok8386-mobi.com/&ved=2ahUKE22",
+23:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok8386-mobi.com/&ved=2ahUKE23",
+24:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://mny.uk.com/&ved=2ahUKE24",
+25:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://mny.uk.com/&ved=2ahUKE25",
+26:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok8386.direct/&ved=2ahUKE26",
+27:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://anietbd.sa.com/&ved=2ahUKE27",
+28:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://anietbd.sa.com/&ved=2ahUKE28",
+29:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://www.kalali.africa.com/&ved=2ahUKE29",
+30:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://linktrangchu-88bet.com/&ved=2ahUKE30",
+31:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu90-3.com/&ved=2ahUKE31",
+32:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://xx88-dangnhap.com/&ved=2ahUKE32",
+33:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://royalbet.in.net/&ved=2ahUKE33",
+34:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE34",
+35:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://pulseras.mex.com/&ved=2ahUKE35",
+36:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://pulseras.mex.com/&ved=2ahUKE36",
+37:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ozona.us.com/&ved=2ahUKE37",
+39:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://wimax速度.jpn.com/&ved=2ahUKE39",
+40:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://bcx88.work/&ved=2ahUKE40",
+41:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://s666-chinhthuc.com/&ved=2ahUKE41",
+42:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://da88-dangnhap.com/&ved=2ahUKE42",
+43:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://13win-khuyenmai133k.com/&ved=2ahUKE43",
+44:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://trangchu-go99vip.com/&ved=2ahUKE44",
+45:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://trangchu-go99vip.com/&ved=2ahUKE45",
+46:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://topiir-up.ru.com/&ved=2ahUKE46",
+47:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://13win-khuyenmai133k.com/&ved=2ahUKE47",
+48:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nha-cai-gk88.info/&ved=2ahUKE48",
+49:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE49",
+50:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://facebook.africa.com/&ved=2ahUKE50",
+51:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://zvk.uk.com/&ved=2ahUKE51",
+52:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://98winvvy.com/&ved=2ahUKE52",
+53:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu-khuyenmai99k.com/&ved=2ahUKE53",
+54:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunxwin.mobi/&ved=2ahUKE54",
+55:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok365-2.com/&ved=2ahUKE55",
+56:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ztzien.ru.com/&ved=2ahUKE56",
+57:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://mm88vi.casino/&ved=2ahUKE57",
+58:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://hm88-z.com/&ved=2ahUKE58",
+59:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://k4mtpn.ru.com/&ved=2ahUKE59",
+60:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://23260.co.com/&ved=2ahUKE60",
+61:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://qik.it.com/&ved=2ahUKE61",
+62:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://luck8-mobi.com/&ved=2ahUKE62",
+63:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://www.escortnews.gr.com/&ved=2ahUKE63",
+64:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunsetlove.it.com/&ved=2ahUKE64",
+65:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://luckywin-game.online/&ved=2ahUKE65",
+66:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://wcacode.it.com/&ved=2ahUKE66",
+67:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://79kingkoko6.com/&ved=2ahUKE67",
+68:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://hew.us.com/&ved=2ahUKE68",
+69:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168-c168.com/&ved=2ahUKE69",
+70:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open881.org/&ved=2ahUKE70",
+71:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168-c168.com/&ved=2ahUKE71",
+72:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://entraide.jp.net/&ved=2ahUKE72",
+73:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://xvnl.sa.com/&ved=2ahUKE73",
+74:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE74",
+75:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE75",
+76:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sc88okvip.store/&ved=2ahUKE76",
+77:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168okvip.com/&ved=2ahUKE77",
+78:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://rtx.uk.com/&ved=2ahUKE78",
+79:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168okvip.com/&ved=2ahUKE79",
+80:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://whb0d8.sa.com/&ved=2ahUKE80",
+81:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://facebook.africa.com/&ved=2ahUKE81",
+
+84:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://strong1.eu.com/&ved=2ahUKE84",
+11738:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://strong1.eu.com/&ved=2ahUKE11738",
+85:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok8386.info/&ved=2ahUKE85",
+86:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok8386.ac/&ved=2ahUKE86",
+
+88:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://789win88.site/&ved=2ahUKE88",
+
+89:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://79king-vn.com/&ved=2ahUKE89",
+90:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://79king-vn.com/&ved=2ahUKE90",
+
+91:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open88a2-okvip.com/&ved=2ahUKE91",
+92:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open88a2-okvip.com/&ved=2ahUKE92",
+
+93:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://xbqj.sa.com/&ved=2ahUKE93",
+94:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://xbqj.sa.com/&ved=2ahUKE94",
+
+95:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE95",
+96:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE96",
+
+97:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open88a2-okvip.com/&ved=2ahUKE97",
+
+98:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sunwin2009.com/&ved=2ahUKE98",
+
+99:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://33win3386.com/&ved=2ahUKE99",
+
+100:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://j88-02.com/&ved=2ahUKE100",
+
+101:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168-c168a.com/&ved=2ahUKE101",
+102:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168-c168a.com/&ved=2ahUKE102",
+
+103:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://jiorockers.ru.com/&ved=2ahUKE103",
+104:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://jiorockers.ru.com/&ved=2ahUKE104",
+
+105:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://facelift.uk.net/&ved=2ahUKE105",
+
+106:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu-khuyenmai99k.com/&ved=2ahUKE106",
+
+107:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://888b-game.online/&ved=2ahUKE107",
+
+108:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://akkus.de.com/&ved=2ahUKE108",
+
+109:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://activarte.org.mx/&ved=2ahUKE109",
+110:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://activarte.org.mx/&ved=2ahUKE110",
+111:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://activarte.org.mx/&ved=2ahUKE111",
+
+112:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://wit.sa.com/&ved=2ahUKE112",
+
+113:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open881.org/&ved=2ahUKE113",
+
+114:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://green.ae.org/&ved=2ahUKE114",
+
+115:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://dolarciao.it.com/&ved=2ahUKE115",
+
+116:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://go8-khuyenmai288k.com/&ved=2ahUKE116",
+
+117:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://amicus.gb.net/&ved=2ahUKE117",
+
+118:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168nn.site/&ved=2ahUKE118",
+
+119:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168nn.site/&ved=2ahUKE119",
+
+120:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://gk88.kim/&ved=2ahUKE120",
+
+121:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://www.ok365.org/&ved=2ahUKE121",
+
+122:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu90-3.com/&ved=2ahUKE122",
+
+123:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168nn.site/&ved=2ahUKE123",
+
+124:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://sc88okvip.store/&ved=2ahUKE124",
+
+125:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://tg88-mobile.vip/&ved=2ahUKE125",
+
+126:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168top1.mobi/&ved=2ahUKE126",
+127:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168top1.mobi/&ved=2ahUKE127",
+
+128:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168-okvip1.com/&ved=2ahUKE128",
+129:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168-okvip1.com/&ved=2ahUKE129",
+
+130:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://iyaxfa.ru.com/&ved=2ahUKE130",
+
+131:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://go99games.vip/&ved=2ahUKE131",
+132:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://open882.net/&ved=2ahUKE132",
+133:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://login.cn.com/&ved=2ahUKE133",
+134:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://rr88-dangnhap.com/&ved=2ahUKE134",
+135:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://tt88-mb66.com/&ved=2ahUKE135",
+136:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu90-3.com/&ved=2ahUKE136",
+137:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://33win8386.online/&ved=2ahUKE137",
+138:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://uk88-okvip.com/&ved=2ahUKE138",
+139:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://02t8w.sa.com/&ved=2ahUKE139",
+140:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://g08.page/&ved=2ahUKE140",
+141:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://mv66-m.com/&ved=2ahUKE141",
+142:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168trangchu.mobi/&ved=2ahUKE142",
+143:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168trangchu.mobi/&ved=2ahUKE143",
+144:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://c168trangchu.mobi/&ved=2ahUKE144",
+145:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://kesato.io/&ved=2ahUKE145",
+146:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://go99-bet.online/&ved=2ahUKE146",
+147:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://linkmaxwin.jp.net/&ved=2ahUKE147",
+148:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://jun88aa1.app/&ved=2ahUKE148",
+149:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://scutt.uk.com/&ved=2ahUKE149",
+150:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://hhurvr.za.com/&ved=2ahUKE150",
+151:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://dom.ae.org/&ved=2ahUKE151",
+152:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://u8886.shop/&ved=2ahUKE152",
+153:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://www.joenegalone.uk.com/&ved=2ahUKE153",
+154:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://888new-me.com/&ved=2ahUKE154",
+155:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://topiir-up.ru.com/&ved=2ahUKE155",
+156:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://99ok-ok99.com/&ved=2ahUKE156",
+157:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ok365mobi.ink/&ved=2ahUKE157",
+158:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://stu3.sa.com/&ved=2ahUKE158",
+159:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://beginpawky.gb.net/&ved=2ahUKE159",
+160:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://u7g.us.com/&ved=2ahUKE160",
+161:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://online-banking.gb.net/&ved=2ahUKE161",
+162:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://8kbet-8.info/&ved=2ahUKE162",
+163:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu90000.app/&ved=2ahUKE163",
+164:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ww88-s2.com/&ved=2ahUKE164",
+12238:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://789p-mobi.com/&ved=2ahUKE12238",
+166:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://1au88.chat/&ved=2ahUKE166",
+167:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://nohu-khuyenmai99k.com/&ved=2ahUKE167",
+168:"https://www.google.com/url?sa=t&source=web&rct=j&url=https://ice-casino.gr.com/&ved=2ahUKE168"
+
+};
+
+function rand(len){
+const c="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+let s="";
+for(let i=0;i<len;i++){
+s+=c[Math.floor(Math.random()*c.length)];
+}
+return s;
+}
+
+function buildGoogleLink(url){
+
+let base=url.split("&ved=")[0];
+
+let ved="2ahUKE"+rand(20);
+let usg="AOvVaw"+rand(22);
+
+return base+"&ved="+ved+"&usg="+usg;
+
+}
+
+/* =========================
+1. GET MISSION ID
+========================= */
+
+if(location.host.includes("huongdangetlink")){
+
+let match = location.pathname.match(/^\/(\d+)-/);
+
+if(!match) return;
+
+let mission = parseInt(match[1]);
+
+let target = missionList[mission];
+
+if(!target){
+console.log("Không có mission:",mission);
+return;
+}
+
+console.log("Mission:",mission);
+console.log("Redirect:",target);
+
+setTimeout(()=>{
+
+let randomLink = buildGoogleLink(target);
+
+console.log("Random Link:",randomLink);
+
+window.open(randomLink,"_blank");
+
+},3000);
+
+}
+
+
+
+/* =========================
+2. AUTO REDIRECT GOOGLE
+========================= */
+
+if(location.host.includes("google.com") && location.pathname=="/url"){
+
+let params = new URLSearchParams(location.search);
+
+let real = params.get("url");
+
+if(real){
+
+console.log("Google redirect →",real);
+
+setTimeout(()=>{
+
+window.location.href = real;
+
+},1500);
+
+}
+
+}
+/* =========================
+SKIP MISSION KHÔNG MONG MUỐN
+========================= */
+
+const skipMissions=[14,97,140,147,64,121,21,];
+
+if(location.host.includes("huongdangetlink")){
+
+let match=location.pathname.match(/(\d+)-\d+/);
+
+if(match){
+
+let mission=parseInt(match[1]);
+
+if(skipMissions.includes(mission)){
+
+console.log("Skip mission:",mission);
+
+setTimeout(()=>{
+window.location.replace("https://clickmoney.online/home/tasks");
+},1500);
+
+return; // chặn toàn bộ script phía dưới
+
+}
+
+}
+
+}
+
+})();
