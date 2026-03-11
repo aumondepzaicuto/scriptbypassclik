@@ -1,0 +1,36 @@
+// ==UserScript==
+// @name         CLICKMONEY FIX 404 RETURN TASK
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @match        https://uptolink.one/*
+// @match        https://clickmoney.online/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+
+"use strict";
+
+function check404(){
+
+let text=document.body.innerText.toLowerCase();
+
+if(
+text.includes("404 not found") ||
+text.includes("không tìm thấy trên máy chủ") ||
+text.includes("not found")
+){
+
+console.log("Phát hiện lỗi 404 -> quay lại tasks");
+
+setTimeout(()=>{
+window.location.href="https://clickmoney.online/home/tasks";
+},2000);
+
+}
+
+}
+
+setInterval(check404,2000);
+
+})();
