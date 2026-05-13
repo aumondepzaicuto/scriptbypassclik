@@ -1,0 +1,459 @@
+// ==UserScript==
+// @name         Tự Động Chia Sẻ FB - Siêu Tốc (Turbo Mode)
+// @namespace    http://tampermonkey.net/
+// @version      5.0
+// @description  Tự động chia sẻ Facebook với tốc độ tối đa, delay cực thấp, dành cho thí nghiệm học tập
+// @match        https://www.facebook.com/photo.php*
+// @match        https://facebook.com/photo.php*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=facebook.com
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // -------------------- CẤU HÌNH TỐC ĐỘ --------------------
+    const DEFAULT_TARGET_ID = '122177976962923187';
+    const SHARE_BTN_SELECTOR = 'div[data-ad-rendering-role="share_button"]';
+    const SHARE_ICON_SELECTOR = 'i.x15mokao.x1ga7v0g.x16uus16.xbiv7yw.x1b0d499.x1d69dk1[style*="background-position: 0px -588px"]';
+    const SHARE_NOW_TEXT = 'Chia sẻ ngay';
+    
+    // DELAY SIÊU NHANH (ms)
+    let FAST_DELAY = 200;        // Delay giữa các lần (có thể chỉnh 0-500)
+    let CLICK_DELAY = 150;       // Chờ sau khi click nút Share trước khi tìm "Chia sẻ ngay"
+    let MODAL_DELAY = 200;       // Chờ modal đóng
+    
+    // Cờ tăng tốc tối đa (bỏ qua hầu hết sleep)
+    let TURBO_MODE = true;
+    
+    // -------------------- BIẾN TOÀN CỤC --------------------
+    let isRunning = false;
+    let isPaused = false;
+    let stopRequested = false;
+    let currentCount = 0;
+    let targetCount = 100;
+    let targetPostId = DEFAULT_TARGET_ID;
+    
+    // UI elements
+    let fabButton, controlPanel, statusSpan, countInput, startBtn, stopBtn, resumeBtn, setTargetBtn, targetIdSpan, currentIdSpan;
+    let delayRange, delayValue, turboCheckbox;
+    let currentTimeout = null;
+    
+    // -------------------- HÀM TIỆN ÍCH --------------------
+    function getCurrentPostIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('fbid');
+    }
+    
+    function isTargetPost() {
+        return getCurrentPostIdFromUrl() === targetPostId;
+    }
+    
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // Lưu tiến trình
+    function saveProgress() {
+        if (isRunning && !stopRequested && !isPaused) {
+            localStorage.setItem('fb_auto_share_progress', JSON.stringify({
+                targetPostId, targetCount, currentCount, lastUpdate: Date.now()
+            }));
+        } else {
+            localStorage.removeItem('fb_auto_share_progress');
+        }
+    }
+    
+    function clearProgress() { localStorage.removeItem('fb_auto_share_progress'); }
+    
+    function loadProgress() {
+        const saved = localStorage.getItem('fb_auto_share_progress');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                if (data.targetPostId === getCurrentPostIdFromUrl() && data.currentCount < data.targetCount) {
+                    targetPostId = data.targetPostId;
+                    targetCount = data.targetCount;
+                    currentCount = data.currentCount;
+                    updateStatus(`📌 Tiến trình: ${currentCount}/${targetCount}. Nhấn TIẾP TỤC để chạy siêu tốc.`);
+                    if (resumeBtn) resumeBtn.disabled = false;
+                    if (targetIdSpan) targetIdSpan.textContent = targetPostId;
+                    if (countInput) countInput.value = targetCount;
+                    return true;
+                }
+            } catch(e) {}
+        }
+        return false;
+    }
+    
+    // Tìm nút Share ngay lập tức (không chờ)
+    function findShareButton() {
+        let btn = document.querySelector(SHARE_BTN_SELECTOR);
+        if (btn && btn.offsetParent !== null) return btn;
+        const icon = document.querySelector(SHARE_ICON_SELECTOR);
+        if (icon) {
+            let parent = icon.closest('div[role="button"], div[role="none"]');
+            if (parent && parent.offsetParent !== null) return parent;
+            return icon;
+        }
+        return null;
+    }
+    
+    // Tìm nút "Chia sẻ ngay" (không chờ lâu)
+    function findShareNowButton() {
+        const xpath = `//span[contains(text(), '${SHARE_NOW_TEXT}')]`;
+        const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        const el = result.singleNodeValue;
+        if (el && el.offsetParent !== null) return el;
+        return null;
+    }
+    
+    // Click an toàn (không scroll nếu không cần)
+    function quickClick(element) {
+        if (!element) return false;
+        // Không scroll để tiết kiệm thời gian
+        element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        element.click();
+        return true;
+    }
+    
+    // Thực hiện một lần chia sẻ cực nhanh
+    async function performOneShare(iteration) {
+        // Tìm nút Share (không chờ, nếu thiếu thì thử lại tối đa 3 lần rất nhanh)
+        let shareBtn = findShareButton();
+        let retry = 0;
+        while (!shareBtn && retry < 3) {
+            await sleep(50);
+            shareBtn = findShareButton();
+            retry++;
+        }
+        if (!shareBtn) {
+            updateStatus(`Lỗi ${iteration}: không thấy nút Share`, true);
+            return false;
+        }
+        
+        quickClick(shareBtn);
+        await sleep(CLICK_DELAY);
+        
+        let shareNow = findShareNowButton();
+        retry = 0;
+        while (!shareNow && retry < 5) {
+            await sleep(50);
+            shareNow = findShareNowButton();
+            retry++;
+        }
+        if (!shareNow) {
+            updateStatus(`Lỗi ${iteration}: không thấy "Chia sẻ ngay"`, true);
+            return false;
+        }
+        
+        quickClick(shareNow);
+        await sleep(MODAL_DELAY);
+        return true;
+    }
+    
+    // Vòng lặp chính - không delay ngoại trừ sleep tối thiểu
+    async function runSharing() {
+        if (!isRunning || stopRequested || isPaused) return;
+        
+        if (!isTargetPost()) {
+            updateStatus(`❌ Sai bài viết! Dừng.`, true);
+            stopSharing();
+            return;
+        }
+        
+        if (currentCount >= targetCount) {
+            updateStatus(`🎉 Hoàn thành ${currentCount}/${targetCount} lần!`);
+            stopSharing();
+            clearProgress();
+            return;
+        }
+        
+        const iteration = currentCount + 1;
+        const success = await performOneShare(iteration);
+        if (success) {
+            currentCount++;
+            updateStatus(`✅ ${currentCount}/${targetCount} (${Math.round(currentCount/targetCount*100)}%)`);
+            saveProgress();
+        } else {
+            updateStatus(`❌ Lỗi lần ${iteration}, thử lại ngay...`, true);
+            await sleep(100); // chờ rất ngắn rồi thử lại
+        }
+        
+        if (!stopRequested && !isPaused && currentCount < targetCount) {
+            let delay = TURBO_MODE ? FAST_DELAY : (delayRange ? parseInt(delayRange.value) : 300);
+            if (delay > 0) await sleep(delay);
+            // Gọi lại ngay lập tức
+            currentTimeout = setTimeout(() => runSharing(), 0);
+        } else if (currentCount >= targetCount) {
+            stopSharing();
+            clearProgress();
+        }
+    }
+    
+    function startSharing(resume = false) {
+        if (isRunning && !isPaused) {
+            updateStatus('Đang chạy! Dừng trước nếu muốn reset.', true);
+            return;
+        }
+        if (isPaused && resume) {
+            isPaused = false;
+            updateStatus('Tiếp tục siêu tốc...');
+            if (currentTimeout) clearTimeout(currentTimeout);
+            currentTimeout = setTimeout(() => runSharing(), 0);
+            return;
+        }
+        
+        if (!isTargetPost()) {
+            updateStatus(`❌ Sai bài viết! ID hiện tại: ${getCurrentPostIdFromUrl()} ≠ ${targetPostId}`, true);
+            return;
+        }
+        
+        let times = parseInt(countInput.value, 10);
+        if (isNaN(times) || times < 1) {
+            updateStatus('Số lần không hợp lệ', true);
+            return;
+        }
+        
+        if (!resume) {
+            currentCount = 0;
+            targetCount = times;
+            clearProgress();
+        } else {
+            if (currentCount >= targetCount) {
+                updateStatus('Đã hoàn thành trước đó', true);
+                return;
+            }
+        }
+        
+        // Đọc chế độ turbo
+        TURBO_MODE = turboCheckbox ? turboCheckbox.checked : true;
+        if (TURBO_MODE) {
+            FAST_DELAY = 100;  // cực nhanh
+            CLICK_DELAY = 80;
+            MODAL_DELAY = 120;
+        } else {
+            FAST_DELAY = delayRange ? parseInt(delayRange.value) : 300;
+            CLICK_DELAY = 150;
+            MODAL_DELAY = 200;
+        }
+        
+        isRunning = true;
+        isPaused = false;
+        stopRequested = false;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        if (resumeBtn) resumeBtn.disabled = true;
+        updateStatus(`🚀 Bắt đầu TURBO: ${targetCount} lần (đã thực hiện ${currentCount}) - Delay ${FAST_DELAY}ms`);
+        saveProgress();
+        
+        if (currentTimeout) clearTimeout(currentTimeout);
+        currentTimeout = setTimeout(() => runSharing(), 0);
+    }
+    
+    function stopSharing() {
+        if (isRunning) {
+            stopRequested = true;
+            isPaused = false;
+            if (currentTimeout) clearTimeout(currentTimeout);
+            updateStatus(`⏹️ Đã dừng sau ${currentCount} lần.`);
+        } else {
+            updateStatus('Không có tiến trình nào.');
+        }
+        isRunning = false;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        if (resumeBtn) resumeBtn.disabled = false;
+        clearProgress();
+    }
+    
+    // Xử lý ẩn/hiện tab
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            if (isRunning && !stopRequested) {
+                isPaused = true;
+                if (currentTimeout) clearTimeout(currentTimeout);
+                updateStatus('📱 Tab ẩn, tạm dừng. Quay lại sẽ tiếp tục.');
+                saveProgress();
+            }
+        } else {
+            if (isPaused && !stopRequested && !isRunning) {
+                const saved = localStorage.getItem('fb_auto_share_progress');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        if (data.targetPostId === getCurrentPostIdFromUrl() && data.currentCount < data.targetCount) {
+                            targetPostId = data.targetPostId;
+                            targetCount = data.targetCount;
+                            currentCount = data.currentCount;
+                            updateStatus(`📱 Quay lại! Còn ${targetCount - currentCount} lần. Nhấn TIẾP TỤC.`);
+                            if (resumeBtn) resumeBtn.disabled = false;
+                            if (targetIdSpan) targetIdSpan.textContent = targetPostId;
+                            if (countInput) countInput.value = targetCount;
+                            isPaused = false;
+                        }
+                    } catch(e) {}
+                }
+            } else if (isPaused && isRunning) {
+                isPaused = false;
+                if (!stopRequested && currentCount < targetCount) {
+                    updateStatus('Tiếp tục ngay...');
+                    currentTimeout = setTimeout(() => runSharing(), 0);
+                }
+            }
+            if (currentIdSpan) currentIdSpan.textContent = getCurrentPostIdFromUrl() || '?';
+            checkAndHighlight();
+        }
+    }
+    
+    function setTargetFromCurrent() {
+        const current = getCurrentPostIdFromUrl();
+        if (current) {
+            targetPostId = current;
+            if (targetIdSpan) targetIdSpan.textContent = targetPostId;
+            updateStatus(`✅ Đã đặt ID mục tiêu: ${targetPostId}`);
+            localStorage.setItem('autoShare_targetId', targetPostId);
+            clearProgress();
+            if (resumeBtn) resumeBtn.disabled = true;
+            checkAndHighlight();
+        } else {
+            updateStatus('Không lấy được ID!', true);
+        }
+        if (currentIdSpan) currentIdSpan.textContent = getCurrentPostIdFromUrl() || '?';
+    }
+    
+    function checkAndHighlight() {
+        const isMatch = isTargetPost();
+        if (controlPanel) controlPanel.style.border = isMatch ? '2px solid #4caf50' : '2px solid #ff6b6b';
+        if (!isMatch && isRunning && !isPaused) stopSharing();
+    }
+    
+    // -------------------- TẠO UI --------------------
+    function createUI() {
+        const container = document.createElement('div');
+        container.id = 'auto-share-fb-container';
+        container.style.cssText = `position:fixed; bottom:20px; right:20px; z-index:999999; font-family:system-ui;`;
+        
+        fabButton = document.createElement('div');
+        fabButton.innerHTML = '⚡';
+        fabButton.style.cssText = `width:56px; height:56px; background:linear-gradient(135deg,#1e1e2f,#2d2d44); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3); color:white; touch-action:manipulation;`;
+        fabButton.onclick = () => togglePanel();
+        
+        controlPanel = document.createElement('div');
+        controlPanel.style.cssText = `position:absolute; bottom:70px; right:0; width:340px; max-width:calc(100vw - 40px); background:rgba(30,30,47,0.96); backdrop-filter:blur(16px); border-radius:28px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); transition:0.3s; opacity:0; visibility:hidden; transform:translateY(20px); pointer-events:none; color:#f0f0f0;`;
+        
+        controlPanel.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <strong style="font-size:18px;">⚡ Tự động share siêu tốc</strong>
+                <span id="close-panel" style="cursor:pointer; font-size:24px;">&times;</span>
+            </div>
+            <div style="margin-bottom:12px; background:rgba(0,0,0,0.4); border-radius:16px; padding:10px;">
+                <div>🎯 ID mục tiêu: <strong id="target-id-display">${targetPostId}</strong></div>
+                <div>🆔 ID hiện tại: <strong id="current-id-display">${getCurrentPostIdFromUrl() || '?'}</strong></div>
+                <button id="set-target-btn" style="margin-top:8px; background:#3a3a55; border:none; border-radius:40px; padding:6px 12px; color:white; cursor:pointer;">🎯 Lấy ID bài này</button>
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>🔁 Số lần:</label>
+                <input type="number" id="share-count" value="100" min="1" max="9999" style="width:100%; padding:8px; border-radius:40px; border:none; background:#2a2a3c; color:white; text-align:center;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" id="turbo-mode" checked> <strong>🚀 Turbo Mode (không delay, cực nhanh)</strong>
+                </label>
+                <div id="delay-control" style="margin-top:8px; display:none;">
+                    <label>Delay (ms): <span id="delay-value">200</span></label>
+                    <input type="range" id="delay-range" min="50" max="1000" step="10" value="200" style="width:100%;">
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                <button id="start-share-btn" style="flex:1; background:#4caf50; border:none; border-radius:40px; padding:10px; color:white; font-weight:bold;">▶ BẮT ĐẦU</button>
+                <button id="stop-share-btn" style="flex:1; background:#f44336; border:none; border-radius:40px; padding:10px; color:white; font-weight:bold;" disabled>⏹ DỪNG</button>
+                <button id="resume-share-btn" style="flex:1; background:#ff9800; border:none; border-radius:40px; padding:10px; color:white; font-weight:bold;" disabled>🔄 TIẾP TỤC</button>
+            </div>
+            <div id="status-area" style="background:rgba(0,0,0,0.5); border-radius:20px; padding:10px; font-size:12px; max-height:80px; overflow-y:auto;">Trạng thái: Sẵn sàng</div>
+            <div style="font-size:10px; text-align:center; margin-top:12px; opacity:0.6;">⚡ Turbo: gần như không delay, click liên tục</div>
+        `;
+        
+        container.appendChild(fabButton);
+        container.appendChild(controlPanel);
+        document.body.appendChild(container);
+        
+        statusSpan = document.getElementById('status-area');
+        countInput = document.getElementById('share-count');
+        startBtn = document.getElementById('start-share-btn');
+        stopBtn = document.getElementById('stop-share-btn');
+        resumeBtn = document.getElementById('resume-share-btn');
+        setTargetBtn = document.getElementById('set-target-btn');
+        targetIdSpan = document.getElementById('target-id-display');
+        currentIdSpan = document.getElementById('current-id-display');
+        turboCheckbox = document.getElementById('turbo-mode');
+        delayRange = document.getElementById('delay-range');
+        delayValue = document.getElementById('delay-value');
+        const closeBtn = document.getElementById('close-panel');
+        
+        startBtn.onclick = () => startSharing(false);
+        stopBtn.onclick = stopSharing;
+        resumeBtn.onclick = () => startSharing(true);
+        setTargetBtn.onclick = setTargetFromCurrent;
+        if (closeBtn) closeBtn.onclick = () => togglePanel(false);
+        
+        if (turboCheckbox) {
+            turboCheckbox.onchange = () => {
+                const delayDiv = document.getElementById('delay-control');
+                if (delayDiv) delayDiv.style.display = turboCheckbox.checked ? 'none' : 'block';
+            };
+            turboCheckbox.onchange();
+        }
+        if (delayRange) delayRange.oninput = () => { if(delayValue) delayValue.textContent = delayRange.value; };
+        
+        const savedId = localStorage.getItem('autoShare_targetId');
+        if (savedId) {
+            targetPostId = savedId;
+            if (targetIdSpan) targetIdSpan.textContent = targetPostId;
+        }
+        if (currentIdSpan) currentIdSpan.textContent = getCurrentPostIdFromUrl() || '?';
+        
+        loadProgress();
+        checkAndHighlight();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+    
+    let panelVisible = false;
+    function togglePanel() {
+        panelVisible = !panelVisible;
+        if (panelVisible) {
+            controlPanel.style.opacity = '1';
+            controlPanel.style.visibility = 'visible';
+            controlPanel.style.transform = 'translateY(0)';
+            controlPanel.style.pointerEvents = 'auto';
+            if (currentIdSpan) currentIdSpan.textContent = getCurrentPostIdFromUrl() || '?';
+            checkAndHighlight();
+        } else {
+            controlPanel.style.opacity = '0';
+            controlPanel.style.visibility = 'hidden';
+            controlPanel.style.transform = 'translateY(20px)';
+            controlPanel.style.pointerEvents = 'none';
+        }
+    }
+    
+    function updateStatus(msg, isError = false) {
+        if (statusSpan) {
+            statusSpan.innerHTML = msg;
+            statusSpan.style.color = isError ? '#ffb3b3' : '#e0e0e0';
+        }
+        console.log(`[AutoShare] ${msg}`);
+    }
+    
+    function init() {
+        if (!window.location.pathname.includes('photo.php')) return;
+        createUI();
+        updateStatus('✅ Turbo ready. Bật checkbox "Turbo Mode" để chạy siêu tốc.');
+        if (localStorage.getItem('fb_auto_share_progress')) {
+            updateStatus('💾 Có tiến trình dang dở, nhấn TIẾP TỤC để chạy turbo.');
+            if (resumeBtn) resumeBtn.disabled = false;
+        }
+    }
+    
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
